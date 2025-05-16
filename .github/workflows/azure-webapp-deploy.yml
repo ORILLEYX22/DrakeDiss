@@ -1,0 +1,31 @@
+name: Build and Deploy ASP.NET 4.8 Web App to Azure
+
+on:
+  push:
+    branches:
+      - main  # or your default branch
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup MSBuild path
+        uses: microsoft/setup-msbuild@v1.1
+
+      - name: Restore NuGet packages
+        run: nuget restore
+
+      - name: Build solution
+        run: msbuild /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile /p:WebPublishMethod=FileSystem /p:DeleteExistingFiles=true /p:publishUrl=./publish
+
+      - name: 'Deploy to Azure Web App'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: yourname-webapp      # Replace with your Azure Web App name
+          slot-name: production
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./publish
